@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 from fractions import Fraction
 
 def eliminate(r1, r2, col, target=0):
-    fac = Fraction((r2[col]-target), r1[col])
+    fac = Fraction((r2[col]-target), r1[col]) if r1[col] != 0 else 0
     for i in range(len(r2)):
         r2[i] -= fac * r1[i]
 
