@@ -65,64 +65,40 @@ def create_dict_from_tuples(tuples, complementaire):
     
     return element_dict
 
-    # Find the maximum key
-    max_key = max(dico.keys())
-
-    # While there are None values in the dictionary
-    while None in dico.values():
-        # Iterate over the tuples
-        for t in tuples:
-            # If the first element of the tuple is the maximum key and the second element is None in the dictionary
-            if t[0] == max_key and dico[t[1]] is None:
-                # Assign the value to the second element
-                dico[t[1]] = chr(ord(dico[max_key]) + t[2])
-            # If the second element of the tuple is the maximum key and the first element is None in the dictionary
-            elif t[1] == max_key and dico[t[0]] is None:
-                # Assign the value to the first element
-                dico[t[0]] = chr(ord(dico[max_key]) - t[2])
-        # Update the maximum key to the next key that has a value
-        max_key = next(key for key in sorted(dico.keys(), reverse=True) if dico[key] is not None)
-
-    return dico
-
 filtered_keys = lambda diction: [key for key, value in diction.items() if value is not None]
  
-# def assign_values(dico,tuples, already_done,complement):
-#     if len(already_done) == len(dico.keys()):
-#         return dico
+def assign_values(dico,tuples, already_done):
+    if len(already_done) == len(dico.keys()) and all([ele in already_done for ele in dico.keys()]):
+        return dico, already_done
 
-#     else:
-#         todo = [ele for ele in filtered_keys(dico) if ele not in already_done]
-#         alred_cp = []
-#         for val in todo:
-#             for tpl in tuples:
-#                 distance = tpl[2]
-#                 if val == tpl[0] and tpl[1] not in already_done:
-#                     dico_key = tpl[1]
-#                     dico[dico_key] = chr(ord(dico[val]) - distance)
-#                 elif val == tpl[1] and tpl[0] not in already_done:
-#                     dico_key = tpl[0]
-#                     dico[dico_key] = chr(ord(dico[val]) + distance)
-                
-#                 alred_cp = already_done + [val]
+    else:
+        todo = [ele for ele in filtered_keys(dico) if ele not in already_done]
+        print("todooo",todo)
+        alred_cp = []
+        for val in todo:
+            # delimiter la liste des tuples de chemin sur lequel on peut travailler en fonction de ceux qui sont directement connectés
+            working_tuples = [tpl for tpl in tuples if val in tpl[:2]]
+            for tpl in working_tuples:
+                distance = tpl[2]
+                if val == tpl[0] and tpl[1] not in already_done:
+                    dico_key = tpl[1]
+                    if(distance < 0):
+                        dico[dico_key] = chr(ord(dico[val]) - distance)
+                    else:
+                        dico[dico_key] = chr(ord(dico[val]) + distance)
+                    print(f"{tpl} ---=> {dico[val]} +- {distance} = {dico_key}")
+
+                elif val == tpl[1] and tpl[0] not in already_done:
+                    dico_key = tpl[0]
+                    if(distance < 0):
+                        dico[dico_key] = chr(ord(dico[val]) + distance)
+                    else:
+                        dico[dico_key] = chr(ord(dico[val]) - distance)
+                    print(f"{tpl} +++++ => {dico[val]} +- {distance} = {dico_key}")
+                alred_cp = already_done + [val]
                                 
-#         return assign_values(dico,tuples, alred_cp, complement)
+        return dico, alred_cp
 
-
-# else of creergraph1
-# dataOcc = {}
-#     for composant, count in composant_counts.items():
-#         if count == 1:
-#             graphe.add_node(composant)
-#         else:
-#             if f"{composant}" in dataOcc.keys():
-#                 graphe.add_node(f'{composant}{dataOcc[composant]+1}')
-#                 dataOcc[composant] += 1
-#             else:
-#                 graphe.add_node(f'{composant}1')
-#                 dataOcc[composant] = 1
-            
-#     afficherGraphe(graphe)
 
 
 saisieUtilisateur = ""
@@ -384,7 +360,6 @@ def creerDecryptedGraph1(X2):
             if poids != -10000 and j != i+1  and i!= j:
                 graphe7.add_edge(i, j, weight=poids)
     
-    
     # changer les valeurs 0 1 2 3 ....
     for i in range(nb_sommets):
          graphe7 = nx.relabel_nodes(graphe7, {i: i})
@@ -500,19 +475,21 @@ def main():
     # Créer le graph_1 à partir de X2 ( toutes les connexions )
     graphe7, edges_with_weights  = creerDecryptedGraph1(x2_from_keys)
     afficherGraphe(graphe7)
-    # max_tuple = max(edges_with_weights, key=lambda x: x[1])
-    # other_tuples = list(filter(lambda x: x[1] != max_tuple[1], edges_with_weights))
     dico = create_dict_from_tuples(edges_with_weights, caractere_supplementaire)
     print("Dico init:",dico)
     print("Chemins",edges_with_weights)
-    # print(assign_values(dico, edges_with_weights,[],caractere_supplementaire))
+    dico1, already1 =  assign_values(dico, edges_with_weights,[])
+    print("Dico1:",dico1)
+    print("Already1:",already1)
+    dico2, already2 =  assign_values(dico1, edges_with_weights,already1)
+    print("Dico2:",dico2)
+    print("Already2:",already2)
+    dico3, already3 =  assign_values(dico2, edges_with_weights,already2)
+    print("Dico3:",dico3)
+    print("Already3:",already3)
     #------------------
 
-
-      
-    
     plt.show()
-
 
 if __name__ == "__main__":
     main()
