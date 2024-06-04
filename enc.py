@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 from fractions import Fraction
 
 def eliminate(r1, r2, col, target=0):
-    fac = Fraction((r2[col]-target), r1[col]) if r1[col] != 0 else 0
+    fac = Fraction((r2[col]-target), r1[col])
     for i in range(len(r2)):
         r2[i] -= fac * r1[i]
 
@@ -87,27 +87,42 @@ def create_dict_from_tuples(tuples, complementaire):
 
 filtered_keys = lambda diction: [key for key, value in diction.items() if value is not None]
  
-def assign_values(dico,tuples, already_done,complement):
-    if len(already_done) == len(dico.keys()):
-        return dico
+# def assign_values(dico,tuples, already_done,complement):
+#     if len(already_done) == len(dico.keys()):
+#         return dico
 
-    else:
-        todo = [ele for ele in filtered_keys(dico) if ele not in already_done]
-        alred_cp = []
-        for val in todo:
-            for tpl in tuples:
-                distance = tpl[2]
-                if val == tpl[0] and tpl[1] not in already_done:
-                    dico_key = tpl[1]
-                    dico[dico_key] = chr(ord(dico[val]) - distance)
-                elif val == tpl[1] and tpl[0] not in already_done:
-                    dico_key = tpl[0]
-                    dico[dico_key] = chr(ord(dico[val]) + distance)
+#     else:
+#         todo = [ele for ele in filtered_keys(dico) if ele not in already_done]
+#         alred_cp = []
+#         for val in todo:
+#             for tpl in tuples:
+#                 distance = tpl[2]
+#                 if val == tpl[0] and tpl[1] not in already_done:
+#                     dico_key = tpl[1]
+#                     dico[dico_key] = chr(ord(dico[val]) - distance)
+#                 elif val == tpl[1] and tpl[0] not in already_done:
+#                     dico_key = tpl[0]
+#                     dico[dico_key] = chr(ord(dico[val]) + distance)
                 
-                alred_cp = already_done + [val]
-                        
-        
-        return assign_values(dico,tuples, alred_cp, complement)
+#                 alred_cp = already_done + [val]
+                                
+#         return assign_values(dico,tuples, alred_cp, complement)
+
+
+# else of creergraph1
+# dataOcc = {}
+#     for composant, count in composant_counts.items():
+#         if count == 1:
+#             graphe.add_node(composant)
+#         else:
+#             if f"{composant}" in dataOcc.keys():
+#                 graphe.add_node(f'{composant}{dataOcc[composant]+1}')
+#                 dataOcc[composant] += 1
+#             else:
+#                 graphe.add_node(f'{composant}1')
+#                 dataOcc[composant] = 1
+            
+#     afficherGraphe(graphe)
 
 
 saisieUtilisateur = ""
@@ -147,6 +162,20 @@ def creerGraphe1(saisieUtilisateur):
                 graphe.add_node(f"{composant}{i}")
 
     return graphe
+
+# dataOcc = {}
+#     for composant, count in composant_counts.items():
+#         if count == 1:
+#             graphe.add_node(composant)
+#         else:
+#             if f"{composant}" in dataOcc.keys():
+#                 graphe.add_node(f'{composant}{dataOcc[composant]+1}')
+#                 dataOcc[composant] += 1
+#             else:
+#                 graphe.add_node(f'{composant}1')
+#                 dataOcc[composant] = 1
+            
+#     afficherGraphe(graphe)
 
 # Créer le graphe graphe2, qui est graphe1 avec en plus des arêtes entre chaque composant de saisieUtilisateur
 def creerGraphe2(graphe1):
@@ -240,13 +269,16 @@ def creerX1(graphe, saisieModifiee, caractere_supplementaire):
                 X1[indice_v, indice_u] = poids
 
     return X1
+    
+def Swap(arr, start_index, last_index):
+    arr[:, [start_index, last_index]] = arr[:, [last_index, start_index]]
 
 def creerX2(graphe, saisieModifiee):
     # Nombre de sommets dans le graphe
     nb_sommets = len(graphe.nodes())
 
     # Initialiser une matrice de distances avec des valeurs infinies
-    X2 = np.full((nb_sommets, nb_sommets), 0)
+    X2 = np.full((nb_sommets, nb_sommets), -10000 )
 
     # Remplir la matrice avec les distances entre les sommets
     for u, v, data in graphe.edges(data=True):
@@ -260,7 +292,7 @@ def creerX2(graphe, saisieModifiee):
     for i, composant in enumerate(saisieModifiee):
         indice_composant = list(graphe.nodes()).index(composant)
         X2[indice_composant, indice_composant] = 0  # La distance d'un sommet à lui-même est 0
-
+    # Swap(X2, 0, -1)
     return X2
 
 def estInversible(matrice):
@@ -321,7 +353,7 @@ def creerPk(taille):
             return matrice
 
 # Créer le graphe graphe7 à partir de X2
-def creerGraphe7(X2):
+def creerDecryptedGraph1(X2):
     graphe7 = nx.Graph()
 
     # Nombre de sommets dans le graphe
@@ -331,15 +363,26 @@ def creerGraphe7(X2):
     for i in range(nb_sommets):
         graphe7.add_node(i)
 
+    for i in range(nb_sommets-1):
+        # add edge based on number: 1-2, 2-3, 3-4...
+        if (i < nb_sommets - 1 and X2[i][i + 1] != -10000 ): #or (i < nb_sommets - 1 and X2[i][0] == 0 and i >=1 ):
+            graphe7.add_edge(i, i + 1, weight=X2[i][i + 1])
     # Ajouter les arêtes avec leurs poids
     for i in range(nb_sommets):
         for j in range(nb_sommets):
             poids = X2[i][j]
-            if poids != 0 :
+            if poids != -10000 and j != i+1  and i!= j:
                 graphe7.add_edge(i, j, weight=poids)
     
-    edges_with_weights = [(u, v, d['weight']) for u, v, d in graphe7.edges(data=True)]
+    
+    # changer les valeurs 0 1 2 3 ....
+    for i in range(nb_sommets):
+         graphe7 = nx.relabel_nodes(graphe7, {i: i})
 
+    # je veux changer le des sommets 0 en -1 et -1 en 0
+    graphe7 = nx.relabel_nodes(graphe7, {nb_sommets: 100})
+    
+    edges_with_weights = [(u, v, d['weight']) for u, v, d in graphe7.edges(data=True)]
     return graphe7, edges_with_weights
 
 
@@ -391,7 +434,6 @@ def main():
 
     # Créer le graphe graphe4, qui est graphe3 avec en plus des arêtes pour que tous les sommets soient reliés et en leur ajoutant des poids débutant à 129
     graphe4 = creerGraphe4(graphe3)
-
     # Créer graphe 5, qui est graphe4 avec en plus un caractère aléatoire utilisé comme sommet, lié à un sommet aléatoire de graphe4 et dont le poids est la distance entre ce caractère aléatoire et le sommet auquel il est lié
     graphe5 = creerGraphe5(graphe4, caractere_supplementaire, position)
     # Afficher graphe5
@@ -445,16 +487,15 @@ def main():
     ### Déchiffrer ###
     x3_from_keys = retrouverX(Pk, Ct)
     x2_from_keys = retrouverX(X1, x3_from_keys)
-
-    # Créer le graphe7 à partir de X2
-    graphe7, edges_with_weights  = creerGraphe7(X2)
+    # Créer le graph_1 à partir de X2 ( toutes les connexions )
+    graphe7, edges_with_weights  = creerDecryptedGraph1(x2_from_keys)
     afficherGraphe(graphe7)
     # max_tuple = max(edges_with_weights, key=lambda x: x[1])
     # other_tuples = list(filter(lambda x: x[1] != max_tuple[1], edges_with_weights))
     dico = create_dict_from_tuples(edges_with_weights, caractere_supplementaire)
     print("Dico init:",dico)
     print("Chemins",edges_with_weights)
-    print(assign_values(dico, edges_with_weights,[],caractere_supplementaire))
+    # print(assign_values(dico, edges_with_weights,[],caractere_supplementaire))
     #------------------
 
 
