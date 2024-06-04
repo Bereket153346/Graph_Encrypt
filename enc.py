@@ -163,6 +163,7 @@ def creerGraphe1(saisieUtilisateur):
 
     return graphe
 
+# version debug
 # dataOcc = {}
 #     for composant, count in composant_counts.items():
 #         if count == 1:
@@ -175,7 +176,16 @@ def creerGraphe1(saisieUtilisateur):
 #                 graphe.add_node(f'{composant}1')
 #                 dataOcc[composant] = 1
             
-#     afficherGraphe(graphe)
+# fin
+
+# version normal
+# for composant, count in composant_counts.items():
+        # if count == 1:
+        #     graphe.add_node(composant)
+        # else:
+        #     for i in range(1, count + 1):
+        #         graphe.add_node(f"{composant}{i}")
+# fin
 
 # Créer le graphe graphe2, qui est graphe1 avec en plus des arêtes entre chaque composant de saisieUtilisateur
 def creerGraphe2(graphe1):
