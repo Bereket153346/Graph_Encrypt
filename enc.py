@@ -6,7 +6,8 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from fractions import Fraction
-
+import streamlit as st
+import time
 def eliminate(r1, r2, col, target=0):
     fac = Fraction((r2[col]-target), r1[col])
     for i in range(len(r2)):
@@ -67,6 +68,21 @@ def create_dict_from_tuples(tuples, complementaire):
 
 filtered_keys = lambda diction: [key for key, value in diction.items() if value is not None]
  
+def ascii_operation(character, offset):
+    # Convert the character to its ASCII value
+    ascii_value = ord(character)
+    
+    # Perform the operation
+    new_ascii_value = ascii_value + offset
+    
+    # Ensure the result is within the valid ASCII range (0-127)
+    new_ascii_value = new_ascii_value % 128
+    
+    # Convert the ASCII value back to a character
+    new_character = chr(new_ascii_value)
+    
+    return new_character
+
 def assign_values(dico,tuples, already_done):
     if len(already_done) == len(dico.keys()) and all([ele in already_done for ele in dico.keys()]):
         return dico, already_done
@@ -80,21 +96,22 @@ def assign_values(dico,tuples, already_done):
             working_tuples = [tpl for tpl in tuples if val in tpl[:2]]
             for tpl in working_tuples:
                 distance = tpl[2]
-                if val == tpl[0] and tpl[1] not in already_done:
+                if val == tpl[0] and tpl[1] not in already_done and dico[tpl[1]] == None:
                     dico_key = tpl[1]
-                    if(distance < 0):
-                        dico[dico_key] = chr(ord(dico[val]) - distance)
-                    else:
-                        dico[dico_key] = chr(ord(dico[val]) + distance)
-                    print(f"{tpl} ---=> {dico[val]} +- {distance} = {dico_key}")
+                    dico[dico_key] = ascii_operation(dico[val],-int(distance))
+                    print(f"{tpl} ---=> = {dico_key} : {dico[val]} - {distance} ={ascii_operation(dico[val],-int(distance))} ")
 
-                elif val == tpl[1] and tpl[0] not in already_done:
+                elif val == tpl[1] and tpl[0] not in already_done and dico[tpl[0]] == None:
                     dico_key = tpl[0]
-                    if(distance < 0):
-                        dico[dico_key] = chr(ord(dico[val]) + distance)
+                    if distance > 0:
+                        print("distance positive", distance)
+                        dico[dico_key] = ascii_operation(dico[val],int(distance))
                     else:
-                        dico[dico_key] = chr(ord(dico[val]) - distance)
-                    print(f"{tpl} +++++ => {dico[val]} +- {distance} = {dico_key}")
+                        print("distance negative", distance)
+                        dico[dico_key] = ascii_operation(dico[val],-int(distance)) # chr( ord(distance))
+                    print(f"{tpl} +++++ => = {dico_key} : {dico[val]} + {distance} ={ascii_operation(dico[val],-int(distance))} ")
+                else:
+                    print(distance)
                 alred_cp = already_done + [val]
                                 
         return dico, alred_cp
@@ -237,7 +254,7 @@ def afficherGraphe(graphe):
         label_pos_x = (x1 + x2) / 2 + offset * (y2 - y1)
         label_pos_y = (y1 + y2) / 2 - offset * (x2 - x1)
         plt.text(label_pos_x, label_pos_y, weight, horizontalalignment='center', verticalalignment='center', color=edge_colors[i])
-
+    return fig
 # Créer la matrice de distance X1 pour graphe5
 def creerX1(graphe, saisieModifiee, caractere_supplementaire):
     taille = len(saisieModifiee)
@@ -255,7 +272,19 @@ def creerX1(graphe, saisieModifiee, caractere_supplementaire):
                 X1[indice_v, indice_u] = poids
 
     return X1
-    
+
+def creerX(graphe, entreeModifiee):
+    taille = len(entreeModifiee)
+    X1 = np.zeros((taille, taille), dtype=int)
+    for u, v, attr in graphe.edges(data=True):
+        i = entreeModifiee.index(u)
+        j = entreeModifiee.index(v)
+        poids = attr['weight']
+        X1[i, j] = poids
+        X1[j, i] = poids 
+    return X1
+
+
 def Swap(arr, start_index, last_index):
     arr[:, [start_index, last_index]] = arr[:, [last_index, start_index]]
 
@@ -285,7 +314,7 @@ def estInversible(matrice):
     return np.linalg.matrix_rank(matrice) == len(matrice)
 
 def modifierComposants(saisieModifiee, caractere_supplementaire):
-    nouvelle_saisie = {}
+    nouvelle_saisie = []
     composant_counts = {}
 
     for composant in saisieModifiee:
@@ -293,16 +322,21 @@ def modifierComposants(saisieModifiee, caractere_supplementaire):
 
     for composant, count in composant_counts.items():
         if count == 1:
-            nouvelle_saisie[composant] = composant
+            nouvelle_saisie.append((composant, composant))
+            # nouvelle_saisie[composant] = composant
         else:
             for i in range(1, count + 1):
                 if composant != caractere_supplementaire:
-                    nouvelle_saisie[f"{composant}{i}"] = composant
+                    nouvelle_saisie.append((f"{composant}{i}", composant))
+                    # nouvelle_saisie[f"{composant}{i}"] = composant
                 else:
                     if i == 1:
-                        nouvelle_saisie[composant] = composant
+                        nouvelle_saisie.append((composant, composant))
+                        # nouvelle_saisie[composant] = composant
+
                     else:
-                        nouvelle_saisie[f"{composant}{i}"] = composant
+                        nouvelle_saisie.append((f"{composant}{i}", composant))
+                        # nouvelle_saisie[f"{composant}{i}"] = composant
 
     return nouvelle_saisie
 
@@ -394,17 +428,193 @@ def retrouverMotChiffre(graphe, X2):
     
     return mot_chiffre
 
+#  ------------------------------------------------------------ debut streamlit functions ------------------------------------------------------------ #
+
+js_scroll = '''
+<script>
+    var body = window.parent.document.querySelector(".main");
+    console.log(body);
+    body.scrollTop = 0;
+</script>
+'''
+
+def stream_data(string_input,stream_time):
+    for i in string_input:
+        yield i
+        time.sleep(stream_time)
 
 
+def streamlit_process():
+    count = 0
+    st.title("Suivez le processus de chiffrement et de déchiffrement de votre message")
+    saisieUtilisateur = st.chat_input("Say something")
+    if saisieUtilisateur:
+        st.toast('Message enregistré avec succès', icon="📝")
+        count += 1
+        if count > 1:
+            st.toast('Veuillez scroller en haut de la page pour voir le processus depuis le début', icon="🔄")
+        # run the scroll code 
+        saisieModifiee = caractere_supplementaire + saisieUtilisateur
+        st.markdown(f"""## <ins>Chiffrement:</ins>""",unsafe_allow_html=True)
+        st.write_stream(stream_data(f"""Le message à chiffrer est:""",0.02))
+        st.code(saisieUtilisateur)
+        
+        # Etape 1
+        st.write_stream(stream_data(f"""### Etape 1: Réalisation du graph complet""",0.02))
+        st_graph5, st_graph5_fig = get_graph_n(saisieUtilisateur, 5)
+        st.pyplot(st_graph5_fig)
+        st.write_stream(stream_data(f"""Explication texte with stream""",0.02))
+        
+        # Etape 2
+        st.write_stream(stream_data(f"""### Etape 2: Création de la matrice de distance X1""",0.02))
+        st.write_stream(stream_data("_**X1**_ est la matrice de distance pour la saisie utilisateur",0.02))
+        X1 = creerInversibleX1(position,saisieModifiee,st_graph5)
+        st.write(X1)
+        st.write_stream(stream_data(f"""La _**matrice X1 { "est inversible" if estInversible(X1) else "n'est pas inversible"}**_""",0.02))
+        
+        # Etape 3
+        st.write_stream(stream_data(f"""### Etape 3: Réalisation du graphe minimal""",0.02))
+        st.write_stream(stream_data(f"""##### Application de l'algorithme de Kruskal""",0.02))
+        st_graph6 = Kruskal(st_graph5)
+        st_graph6_fig = afficherGraphe(st_graph6)
+        display_graphs(st_graph5_fig, st_graph6_fig, f""" ###### Graphe complet""", f"""###### Kruskal""")
+
+        # Etape 4
+        st.write_stream(stream_data(f"""### Etape 4: Création de la matrice du graph de Kruskal""",0.02))
+        st.caption("_**X2**_ est la matrice de distance pour le graphe minimal ( graph de Kruskal )")
+        X2 = creerX2(st_graph6, saisieModifiee)
+        st.write(X2)
+        st.write_stream(stream_data(f"""Expliquer l'utilisation de -10000""",0.02))
+
+        # Etape 5
+        st.write_stream(stream_data(f"""### Etape 5: Création de la matrice X3""",0.02))
+        st.latex(r"X3 = X1 \times X2")
+        X3 = np.dot(X1, X2)
+        st.write(X3)
+
+        # Etape 6
+        st.write_stream(stream_data(f"""### Etape 6: Création de la matrice aléatoire Pk""",0.02))
+        st.caption("Pk est une matrice aléatoire unimodulaire dont la taille est égale à la longeur des noeuds du graphe minimal")
+        st_taille_matrice = len(st_graph6.nodes())
+        st_Pk = creerPk(st_taille_matrice)
+        st.write(st_Pk)
+
+        # Etape 7
+        st.write_stream(stream_data(f"""### Etape 7: Calcul de Ct""",0.02))
+        st.latex(r"Ct = Pk \times X3")
+        st_Ct = np.dot(st_Pk, X3)
+        st.write(st_Ct)
+        st.write_stream(stream_data(f"""_**Ct**_ représente la matrice du message chiffré""",0.02))
+        st.write_stream(stream_data(f"""La valeur qui sera oar conséquent envoyé au recepteur est: **(X1, Ct)**""",0.02))
+        st.toast('Méssage chiffré avec succès', icon="🔒")
+        st.write_stream(stream_data(f"""Elements envoyé: """,0.02))
+        display_matrix(X1, st_Ct, f"""##### X1""", f"""##### Ct""")
+        
+        
+        # Déchiffrement
+        st.markdown(f"""## <ins>Déchiffrement:</ins>""",unsafe_allow_html=True)
+        # Etape 1
+        st.write_stream(stream_data(f"""### Etape 1: Récupération de X3 à partir de Ct""",0.02))
+        st.latex(r"X3 = Pk^{-1} \times Ct")
+        X3_from_keys = retrouverX(st_Pk, st_Ct)
+        st.write(X3_from_keys)
+        st.toast('Matrice X3 recalculé avec succès', icon="🔓")
+
+        # Etape 2
+        st.write_stream(stream_data(f"""### Etape 2: Récupération de X2 à partir de X3 et X1""",0.02))
+        st.latex(r"X2 = X1^{-1} \times X3")
+        X2_from_keys = retrouverX(X1, X3_from_keys)
+        st.toast('Matrice X2 recalculé avec succès', icon="🔓")
+        st.write(X2_from_keys)
+        # Etape 3
+        st.write_stream(stream_data(f"""### Etape 3: Création du nouveau graph en fonction de X2""",0.02))
+        st_graph7, edges_with_weights = creerDecryptedGraph1(X2_from_keys)
+        st_graph7_fig = afficherGraphe(st_graph7)
+        st.pyplot(st_graph7_fig)
+        st.write_stream(stream_data(f""" On peut remarquer que ce graph a la _**même forme que le graph de Kruskal**_. Toutefois, on peut remarquer que _**celui-ci n'a pas de lettre comme nom de sommet mais des numéros**_ qui _**représentent l'ordre des lettres**_""",0.02))
+        # Etaoe 4
+        st.write_stream(stream_data(f"""### Etape 4: Reconstruire le message""",0.02))
+        st.write_stream(stream_data(f"""##### Initialisation du dictionnaire""",0.02))
+        dico = create_dict_from_tuples(edges_with_weights, caractere_supplementaire)
+        st.write(dico)
+
+        st.write_stream(stream_data(f"""Commenter pourquoi A est la seule valeur du dico et pourquoi il y'a des null partout""",0.02))
+
+        # Etape 5
+        st.write_stream(stream_data(f"""### Etape 5: Reconstitution des valeurs manquantes du dictionnaire""",0.02)) 
+        
+        st.write_stream(stream_data(f"""Explication de l'algorithme""",0.02))
+        # Etape 6
+        st.write_stream(stream_data(f"""### Etape 6: Dictionnaire final et reconstitution du méssage""",0.02))
+        st.toast('Méssage déchiffré avec succès', icon="🔓")
+        # End
+
+def display_matrix(matrix1, matrix2, matrix1_title, matrix2_title):
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.write(matrix1_title, unsafe_allow_html=True)
+        st.write(matrix1)
+    with col2:
+        st.write(matrix2_title, unsafe_allow_html=True)
+        st.write(matrix2)
     
 
 
-def main():
-    ### Chiffrer ###
+def display_graphs(graph1, graph2, graph1_title, graph2_title):
+    # Create a two-column layout
+    col1, col2 = st.columns(2)
 
-    caractere_supplementaire = 'A'
-    #'►'
-    position = 0
+    # Display Graph 6 in the first column
+    with col1:
+        st.write(graph1_title, unsafe_allow_html=True)
+        st.pyplot(graph1, clear_figure=True)
+        st.write(" ")  # Add some spacing
+
+    # Display Graph 5 in the second column
+    with col2:
+        st.write(graph2_title, unsafe_allow_html=True)
+        st.pyplot(graph2, use_container_width=True)
+        st.write(" ")  # Add some spacing
+
+def streamlit_main():
+    streamlit_process()
+
+def get_graph_n(saisieUtilisateur, N):
+    current_graph = 0 
+    graph = None
+    graph_fig = None
+    while current_graph < N:
+        if current_graph == 0:
+            graph = creerGraphe1(saisieUtilisateur)
+            graph_fig = afficherGraphe(graph)
+        elif current_graph == 1:
+            graph = creerGraphe2(graph)
+            graph_fig = afficherGraphe(graph)
+        elif current_graph == 2:
+            graph = creerGraphe3(graph)
+            graph_fig = afficherGraphe(graph)
+        elif current_graph == 3:
+            graph = creerGraphe4(graph)
+            graph_fig = afficherGraphe(graph)
+        elif current_graph == 4:
+            graph = creerGraphe5(graph, "A", 0)
+            graph_fig = afficherGraphe(graph)
+        current_graph += 1
+    return graph, graph_fig
+
+def creerInversibleX1(position,saisieModifiee,graphe5):
+    X1_temp = creerX(graphe5, saisieModifiee)
+    while (position<len(saisieModifiee) and not estInversible(X1_temp)):
+        position += 1
+        saisieModifiee = saisieUtilisateur[:position] + caractere_supplementaire + saisieUtilisateur[position:]
+        X1_temp = creerX(graphe5, saisieModifiee)
+    return X1_temp
+
+#  ------------------------------------------------------------ fin streamlit functions ------------------------------------------------------------ #
+
+def main(position, caractere_supplementaire):
+    ### Chiffrer ###
 
     interfaceGraphique()
     
@@ -425,10 +635,11 @@ def main():
     afficherGraphe(graphe5)
 
     saisieModifiee = saisieUtilisateur[:position] + caractere_supplementaire + saisieUtilisateur[position:]
-    saisieModifiee = modifierComposants(saisieModifiee, caractere_supplementaire)
+    # saisieModifiee = modifierComposants(saisieModifiee, caractere_supplementaire)
 
     # Créer la matrice de distance X1 pour graphe5
-    X1 = creerX1(graphe5, saisieModifiee, caractere_supplementaire)
+    #X1 = creerX1(graphe5, saisieModifiee, caractere_supplementaire)
+    X1 = creerX(graphe5, saisieModifiee)
 
     print(estInversible(X1))
     print(X1)
@@ -437,7 +648,7 @@ def main():
         position += 1
         graphe5 = creerGraphe5(graphe4, caractere_supplementaire, position)
         saisieModifiee = saisieUtilisateur[:position] + caractere_supplementaire + saisieUtilisateur[position:]
-        X1 = creerX1(graphe5, saisieModifiee, caractere_supplementaire)  
+        X1 = creerX(graphe5, saisieModifiee)  
         print(position)  
         print(estInversible(X1))
         print("X1 :")
@@ -478,18 +689,21 @@ def main():
     dico = create_dict_from_tuples(edges_with_weights, caractere_supplementaire)
     print("Dico init:",dico)
     print("Chemins",edges_with_weights)
-    dico1, already1 =  assign_values(dico, edges_with_weights,[])
-    print("Dico1:",dico1)
-    print("Already1:",already1)
-    dico2, already2 =  assign_values(dico1, edges_with_weights,already1)
-    print("Dico2:",dico2)
-    print("Already2:",already2)
-    dico3, already3 =  assign_values(dico2, edges_with_weights,already2)
-    print("Dico3:",dico3)
-    print("Already3:",already3)
+    
+    while None in dico.values():
+        dico, already_done = assign_values(dico, edges_with_weights, [])
+        print("Dico:",dico)
+        print("Already done:",already_done)
+
+
     #------------------
 
     plt.show()
 
 if __name__ == "__main__":
-    main()
+    # caractere_supplementaire 
+    caractere_supplementaire = 'A'
+    #'►'
+    position = 0
+    # main(position, caractere_supplementaire)
+    streamlit_main()
