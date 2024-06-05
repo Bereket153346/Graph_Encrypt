@@ -274,11 +274,12 @@ def creerX1(graphe, saisieModifiee, caractere_supplementaire):
     return X1
 
 def creerX(graphe, entreeModifiee):
+    list_val = modify_list_doublon_matrix(entreeModifiee)
     taille = len(entreeModifiee)
     X1 = np.zeros((taille, taille), dtype=int)
     for u, v, attr in graphe.edges(data=True):
-        i = entreeModifiee.index(u)
-        j = entreeModifiee.index(v)
+        i = list_val.index(u)
+        j = list_val.index(v)
         poids = attr['weight']
         X1[i, j] = poids
         X1[j, i] = poids 
@@ -302,10 +303,11 @@ def creerX2(graphe, saisieModifiee):
         indice_v = list(graphe.nodes()).index(v)
         X2[indice_u, indice_v] = poids
         X2[indice_v, indice_u] = poids  # La matrice est symétrique pour un graphe non orienté
-
+    
+    temp_list_node = [i if len(i) == 1 else i[0] for i in  list(graphe.nodes())]
     # Mettre les indices des composants de saisieModifiee sur la diagonale de X2
     for i, composant in enumerate(saisieModifiee):
-        indice_composant = list(graphe.nodes()).index(composant)
+        indice_composant = temp_list_node.index(composant)
         X2[indice_composant, indice_composant] = 0  # La distance d'un sommet à lui-même est 0
     # Swap(X2, 0, -1)
     return X2
@@ -427,6 +429,40 @@ def retrouverMotChiffre(graphe, X2):
             mot_chiffre += str(poids)
     
     return mot_chiffre
+
+
+def get_modif_entry(userInput):
+    mod_entry = []
+    occurrences_of_entry_mod_element = {}
+    for lettre in userInput:
+        if lettre in occurrences_of_entry_mod_element:
+            occurrences_of_entry_mod_element[lettre] += 1
+            mod_entry.append(f"{lettre}{occurrences_of_entry_mod_element[lettre]}")
+        
+        else:
+            occurrences_of_entry_mod_element[lettre] = 1
+            mod_entry.append(lettre)
+    return mod_entry
+
+def modify_list_doublon_matrix(input_list):
+    # Copy the list to avoid modifying the original list during iteration
+    modified_list = input_list[:]
+    
+    # Iterate through the list to find elements with 2 characters
+    for item in input_list:
+        if len(item) == 2:
+            # Get the first character of the 2-character element
+            first_char = item[0]
+            
+            # Find the first occurrence of this character in the list
+            for i in range(len(modified_list)):
+                if modified_list[i] == first_char:
+                    # Replace this character with the first character appended by "1"
+                    modified_list[i] = first_char + "1"
+                    break  # Exit the loop after the first occurrence is replaced
+    
+    return modified_list
+
 
 #  ------------------------------------------------------------ debut streamlit functions ------------------------------------------------------------ #
 
@@ -605,11 +641,12 @@ def get_graph_n(saisieUtilisateur, N):
     return graph, graph_fig
 
 def creerInversibleX1(position,saisieModifiee,graphe5):
-    X1_temp = creerX(graphe5, saisieModifiee)
+    entry = get_modif_entry(saisieModifiee)
+    X1_temp = creerX(graphe5, entry)
     while (position<len(saisieModifiee) and not estInversible(X1_temp)):
         position += 1
         saisieModifiee = saisieUtilisateur[:position] + caractere_supplementaire + saisieUtilisateur[position:]
-        X1_temp = creerX(graphe5, saisieModifiee)
+        X1_temp = creerX(graphe5, entry)
     return X1_temp
 
 #  ------------------------------------------------------------ fin streamlit functions ------------------------------------------------------------ #
@@ -640,7 +677,9 @@ def main(position, caractere_supplementaire):
 
     # Créer la matrice de distance X1 pour graphe5
     #X1 = creerX1(graphe5, saisieModifiee, caractere_supplementaire)
-    X1 = creerX(graphe5, saisieModifiee)
+
+
+    X1 = creerX(graphe5, get_modif_entry(saisieModifiee))
 
     print(estInversible(X1))
     print(X1)
@@ -649,7 +688,7 @@ def main(position, caractere_supplementaire):
         position += 1
         graphe5 = creerGraphe5(graphe4, caractere_supplementaire, position)
         saisieModifiee = saisieUtilisateur[:position] + caractere_supplementaire + saisieUtilisateur[position:]
-        X1 = creerX(graphe5, saisieModifiee)  
+        X1 = creerX(graphe5, get_modif_entry(saisieModifiee))  
         print(position)  
         print(estInversible(X1))
         print("X1 :")
