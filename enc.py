@@ -445,6 +445,7 @@ def stream_data(string_input,stream_time):
 
 
 def streamlit_process():
+
     count = 0
     st.title("Suivez le processus de chiffrement et de déchiffrement de votre message")
     saisieUtilisateur = st.chat_input("Say something")
