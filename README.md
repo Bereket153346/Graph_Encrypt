@@ -57,7 +57,7 @@ Ce projet démontre l’application pratique de la théorie des graphes dans la 
    ```
 3. Exécution de l'application Steamlit :
    ```bash
-   streamlit run enc.py
+   streamlit run main.py
    ```
 
 ## Auteurs
