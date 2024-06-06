@@ -162,8 +162,8 @@ def matriceInversibleOuNon(matrice):
     
 def dechiffrerAvecGraphe(graphe: Graph, caractere_supplementaire):
     # print(edges_with_weights)
-    # print(graphe.nodes(data=False))
-    # print(graphe.get_edge_data(5,4))
+    print(graphe.nodes(data=False))
+    print(graphe.get_edge_data(5,4))
 
     # initialiser le dictionnaire pour les lettres du message final avec None
     message_final =  {u:  None if u != 0 else caractere_supplementaire for u in graphe.nodes(data=False)}
@@ -475,7 +475,7 @@ def streamlit_process():
         # Etaoe 4
         st.write_stream(stream_data(f"""### Etape 4: Reconstruire le message""",0.02))
         st.write_stream(stream_data(f"""##### Reconstitution du dictionnaire""",0.02))
-        st_dictionnaire_final = dechiffrerAvecGraphe(st_graph7,caractere_supplementaire)
+        st_dictionnaire_final = dechiffrerAvecGraphe(st_graph7_fig,caractere_supplementaire)
         st.write(st_dictionnaire_final)        
         st.write_stream(stream_data(f"""Explication de l'algorithme""",0.02))
         # Etape 6
