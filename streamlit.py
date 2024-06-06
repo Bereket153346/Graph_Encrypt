@@ -105,8 +105,46 @@ def process_with_double(the_input):
     st.write_stream(stream_data(f"""###### Calcul de Ct""",0.02))
     st.write(double_ct)
 
+    
     st.write_stream(stream_data(f"""###### Elements envoyés""",0.02))
     display_matrix(double_x1, double_ct, f"""##### X1""", f"""##### Ct""")
+    
+    # Déchiffrement
+    st.markdown(f"""## <ins>Déchiffrement:</ins>""",unsafe_allow_html=True)
+   
+    # Etape 1
+    st.write_stream(stream_data(f"""### Etape 1: Récupération de X3 à partir de Ct""",0.02))
+    st.latex(r"X3 = Pk^{-1} \times Ct")
+    st_double_X3_from_keys = retrouverX(double_pk, double_ct)
+    st.write(st_double_X3_from_keys)
+    st.toast('Matrice X3 recalculé avec succès', icon="🔓")
+
+
+    # Etape 2
+    st.write_stream(stream_data(f"""### Etape 2: Récupération de X2 à partir de X3 et X1""",0.02))
+    st.latex(r"X2 = X1^{-1} \times X3")
+    double_x2_from_keys = retrouverX(double_x1, st_double_X3_from_keys)
+    st.toast('Matrice X2 recalculé avec succès', icon="🔓")
+    st.write(double_x2_from_keys)
+    
+    # Etape 3
+    st.write_stream(stream_data(f"""### Etape 3: Création du nouveau graph en fonction de X2""",0.02))
+    double_st_graph7 = creerGrapheAPartirMatrice(double_x2_from_keys)
+    double_st_graph7_fig = afficherGraphe(double_st_graph7)
+    st.pyplot(double_st_graph7_fig)
+    st.write_stream(stream_data(f""" On peut remarquer que ce graph a la _**même forme que l'arbre couvrant minimale**_. Toutefois, on peut remarquer que _**celui-ci n'a pas de lettre comme nom de sommet mais des numéros**_ qui _**représentent l'ordre des lettres**_""",0.02))
+
+     # Etaoe 4
+    st.write_stream(stream_data(f"""### Etape 4: Reconstruire le message""",0.02))
+    st.write_stream(stream_data(f"""##### Reconstitution du dictionnaire""",0.02))
+    st.write(st_dictionnaire_final)        
+    st.write_stream(stream_data(f"""Explication de l'algorithme""",0.02))
+    # Etape 5
+    st.write_stream(stream_data(f"""### Etape 5: Reconstitution du méssage""",0.02))
+    mot_trouve = assembler_message(st_dictionnaire_final)
+    st.write(f"Le méssage trouvé est: ")
+    st.write(f"`{mot_trouve}`")
+    st.toast('Méssage déchiffré avec succès', icon="🔓")
 
 
 def streamlit_process():
