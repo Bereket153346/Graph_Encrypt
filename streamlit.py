@@ -177,9 +177,10 @@ def streamlit_process():
         st.write_stream(stream_data(f"""On a d'abord créé un cycle reliant tous les composants de la saisie de l'utilisateur 
 Puis nous avons ajouté des arêtes ainsi que la distance entre les deux sommet. Toutefois, le graphe utilisé n'est pas orienté.""",0.02))
         
-        st.warning(f"""Note: \n > Afin d'éviter d'avoir un graphe non connexes après avoir appliqué Kruskal, nous avons initialisé la distance entre deux sommets identiques à 0 et deux sommet non reliés à -300.
-Ça nous permettra de distinguer les arêtes inexistantes des arêtes entre deux fois le même caractère.  -300 est une valeur tellement petite qu'elle ne transformera probablement pas une valeur non nulle du tableau en 0. C'est vrai pour une phrase de plus de 171 caractères (300-128)
-Effectivement 128, c'est le premier poids qu'on ajoute entre des lettres qui ne se suivent pas. Puis les poids entre les caractères qui ne se suivent pas augmentent de manière incrémentale à partir de 128""")
+        st.warning(f"""Note: \n > Nous voulons éviter d'avoir un graphe non connexe après avoir appliqué l'algorithme de Kruskal. Ainsi, nous indiquons dans X1 que le poids entre les composants de la phrase saisie qui ne se suivent pas ont une distance de -300. Par exemple, si la phrase saisie est "La salle est grande", la poids entre les sommets "l" et "d" sera de -300.
+Cependant le poids entre entre deux caractères identiques qui se suivent sera quant à lui de 0. Dans notre exemple, le poids entre "l1" et "l2" sera de 0.
+Ainsi, nous pourrons distinguer les arêtes inexistantes des arêtes existant entre deux sommets représentant le même caractère. 
+Nous avons choisi -300 car il est peu probable qu'il provoque par accident un 0 dans la matrice de distance X1. En effet, nous utilisons ta table ASCII qui contient 128 caractères. Les poids qui lient les composants de la phrase saisie commenceront à 129 et seront incrémentés. Pour atteindre un poids de 300, nous aurions à utiliser une phrase de 172 caractères (300-128=172).""")
 
         # Etape 2
         st.write_stream(stream_data(f"""### Etape 2: Création de la matrice de distance X1""",0.02))
