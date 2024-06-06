@@ -56,8 +56,15 @@ Ce projet démontre l’application pratique de la théorie des graphes dans la 
    pip install streamlit
    ```
 3. Exécution de l'application:
+   - Version web avec streamlit:
+     ```bash
+     # déplacez vous dans le dossier et lancez
+     streamlit run streamlit.py
+     ```
+     - Visiter ce : [Lien](https://graph-cypher.streamlit.app/)
+   - Version GUI Tkinter
    ```bash
-   streamlit run main.py
+   python tkinter.py
    ```
 
 ## Auteurs

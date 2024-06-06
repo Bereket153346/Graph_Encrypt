@@ -1,0 +1,90 @@
+import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
+import tkinter as tk
+
+
+
+from utils import *
+
+userInput = ""
+
+def interfaceGraphique():
+    root = tk.Tk()
+    label = tk.Label(root, text="Veuillez entrer un mot :")
+    label.pack()
+    my_entry = tk.Entry(root)
+    my_entry.pack()
+    bouton = tk.Button(root, text="Valider", command=lambda: valider(my_entry, root))
+    bouton.pack()
+    root.mainloop()
+
+def valider(my_entry, root):
+    global userInput
+    userInput = my_entry.get()
+    root.destroy() 
+
+def main(caractere_supplementaire):
+    interfaceGraphique()
+
+    graphe = nx.Graph()
+
+    entreeModifiee = modifierEntree(graphe, userInput)
+    graphe.add_node(caractere_supplementaire)
+    graphe.add_edge(caractere_supplementaire, entreeModifiee[0], weight=ord(entreeModifiee[0][0]) - ord(caractere_supplementaire))
+
+    afficherGraphe(graphe)
+
+    entreeModifiee = [caractere_supplementaire] + entreeModifiee
+    X1 = creerX(graphe, entreeModifiee)
+    print("X1")
+    print(X1)
+
+    grapheKruskal = Kruskal(graphe)
+    afficherGraphe(grapheKruskal)
+
+    X2 = creerX(grapheKruskal, entreeModifiee)
+
+    for i in range(len(X2)):
+        lettre = entreeModifiee[i]
+        X2[i, i] = i
+
+    print("X2")
+    print(X2)
+
+    # OK
+    X3 = np.dot(X1, X2)
+    print("X3")
+    print(X3)
+    
+    Pk = creerPk(len(entreeModifiee))
+    print("Pk")
+    print(Pk)
+
+    Ct = np.dot(Pk, X3)
+    print("Ct")
+    print(Ct)
+
+    ############### déchiffrer ###############
+    X3calcule=retrouverX(Pk, Ct)
+    print("X3 calcule")
+    print(X3calcule)
+    
+    X2calcule=retrouverX(X1, X3calcule)
+    print("X2 calcule")
+    print(X2calcule)
+
+    grapheDechiffrement = creerGrapheAPartirMatrice(X2calcule)
+    afficherGraphe(grapheDechiffrement)
+
+    dictionnaire_final = dechiffrerAvecGraphe(grapheDechiffrement,caractere_supplementaire)
+    print("message final:", dictionnaire_final)
+
+    mot_trouve = assembler_message(dictionnaire_final)
+    print("Le mot trouvé est :", mot_trouve)
+
+    plt.show()
+
+if __name__ == "__main__":
+    caractere_supplementaire = '╩'
+    main(caractere_supplementaire)
