@@ -71,9 +71,9 @@ def process_with_double(the_input):
     st.write(st_dictionnaire_final)        
     st.write_stream(stream_data(f"""Explication de l'algorithme""",0.02))
     # Etape 6
-    st.write_stream(stream_data(f"""### Etape 5: Reconstitution du méssage""",0.02))
+    st.write_stream(stream_data(f"""### Etape 5: Reconstitution du message""",0.02))
     mot_trouve = assembler_message(st_dictionnaire_final)
-    st.write(f"Le méssage trouvé est: ")
+    st.write(f"Le message trouvé est : ")
     st.write(f"`{mot_trouve}`")
     st.toast('Méssage déchiffré avec succès', icon="🔓")
 
@@ -81,7 +81,7 @@ def process_with_double(the_input):
 
     st.markdown(f"""## <ins>Remarque:</ins>""",unsafe_allow_html=True)
     
-    st.error(f"""Note: \n > Etant donné que le graph utilisé n'est pas orienté, il est logiquement difficile de retrouver l'ordre des lettres du message. Ainsi, nous avons décidé d'ajouter à la fin du message initiale son premier caractère. Cela nous permettra de retrouver l'ordre des lettres du message. Ce  caractère n'est pas connu du récepteur, il sert juste à adapter le méssage à la logique du déchiffrement en permettant de connaître le signe des valeurs des arêtes entre les sommets.""")
+    st.error(f"""Note: \n > Pour pouvoir appliquer l'algorithme de Kruskal, nous avons utilisé un graphe non orienté. Or, pour reconstituer correctement le message, nous avons besoin de connaître le sens des arêtes. Cela nous permettra de savoir comment les poids avaient été calculés au départ. Ainsi, nous avons ajouté le premier caractère de la phrase saisie à la fin de la phrase. Il est inconnu des tiers dans tous les cas. Donc il ne compromet pas le chiffrement.""")
     
     st.write_stream(stream_data(f"""###### Nouveau graphe complet""",0.02))
     st.pyplot(st_graph_fig)
@@ -132,7 +132,7 @@ def process_with_double(the_input):
     double_st_graph7 = creerGrapheAPartirMatrice(double_x2_from_keys)
     double_st_graph7_fig = afficherGraphe(double_st_graph7)
     st.pyplot(double_st_graph7_fig)
-    st.write_stream(stream_data(f""" On peut remarquer que ce graph a la _**même forme que l'arbre couvrant minimale**_. Toutefois, on peut remarquer que _**celui-ci n'a pas de lettre comme nom de sommet mais des numéros**_ qui _**représentent l'ordre des lettres**_""",0.02))
+    st.write_stream(stream_data(f""" On peut remarquer que ce graphe a la _**même forme que le graphe de l'arbre couvrant minimal**_. Toutefois, celui-ci n'a pas de lettre comme nom de sommet mais des numéros qui représentent l'ordre des lettres.""",0.02))
 
      # Etaoe 4
     st.write_stream(stream_data(f"""### Etape 4: Reconstruire le message""",0.02))
@@ -140,9 +140,9 @@ def process_with_double(the_input):
     st.write(st_dictionnaire_final)        
     st.write_stream(stream_data(f"""Explication de l'algorithme""",0.02))
     # Etape 5
-    st.write_stream(stream_data(f"""### Etape 5: Reconstitution du méssage""",0.02))
+    st.write_stream(stream_data(f"""### Etape 5: Reconstitution du message""",0.02))
     mot_trouve = assembler_message(st_dictionnaire_final)
-    st.write(f"Le méssage trouvé est: ")
+    st.write(f"Le message trouvé est : ")
     st.write(f"`{mot_trouve}`")
     st.toast('Méssage déchiffré avec succès', icon="🔓")
 
@@ -199,7 +199,7 @@ Effectivement 128, c'est le premier poids qu'on ajoute entre des lettres qui ne 
 
         # Etape 4
         st.write_stream(stream_data(f"""### Etape 4: Création de la matrice du graph de Kruskal""",0.02))
-        st.caption("_**X2**_ est la matrice de distance pour le graphe minimal ( graph de Kruskal )")
+        st.caption("_**X2**_ est la matrice de distance du graphe couvrant minimal ")
         X2 = creerX(st_graph6, entreeModifiee)
         for i in range(len(X2)):
             X2[i, i] = i  
@@ -213,7 +213,7 @@ Effectivement 128, c'est le premier poids qu'on ajoute entre des lettres qui ne 
 
         # Etape 6
         st.write_stream(stream_data(f"""### Etape 6: Création de la matrice aléatoire Pk""",0.02))
-        st.caption("Pk est une matrice aléatoire unimodulaire dont la taille est égale à la longeur des noeuds du graphe minimal")
+        st.caption("Pk est une matrice aléatoire unimodulaire dont la taille est égale à (longueur de la phrase saisie + 1) * (longueur de la phrase saisie + 1).")
         st_Pk =  creerPk(len(entreeModifiee))
         st.write(st_Pk)
 
@@ -223,7 +223,7 @@ Effectivement 128, c'est le premier poids qu'on ajoute entre des lettres qui ne 
         st_Ct = np.dot(st_Pk, X3)
         st.write(st_Ct)
         st.write_stream(stream_data(f"""_**Ct**_ représente la matrice du message chiffré""",0.02))
-        st.write_stream(stream_data(f"""La valeur qui sera par conséquent envoyé au recepteur est: **(X1, Ct)**""",0.02))
+        st.write_stream(stream_data(f"""La valeur qui sera par conséquent envoyée au recepteur est: (X1, Ct).""",0.02))
         st.toast('Méssage chiffré avec succès', icon="🔒")
         st.write(f"""<ins>Elements envoyé</ins>: """)
         display_matrix(X1, st_Ct, f"""##### X1""", f"""##### Ct""")
